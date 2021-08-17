@@ -1,0 +1,90 @@
+https://thought-museum.herokuapp.com/
+
+User:
+	GET: http://localhost:8000/user/ : Get all users without password
+
+	GET: http://localhost:8000/user/:userid : Get user detail by userid
+
+	POST: http://localhost:8000/user/register : create new user 	 
+	{
+		"firstName": "John",
+		"lastName": "Cena",
+		"username": "jc123",
+		"password": "jc123",
+		"role": "teacher"
+	}
+
+	POST: http://localhost:8000/user/login : login user
+	{
+		"username": "jc123",
+		"password": "jc123"
+	}
+
+	PUT: http://localhost:8000/user/ : update logged in user details
+	{
+		"firstName": "John",
+		"lastName": "Abraham"
+	}
+
+	DELETE: http://localhost:8000/user/ : delete logged in user details
+
+===============================================================================
+Workspace:
+	GET http://localhost:8000/workspace : Get all workspaces for logged in user
+	
+	GET http://localhost:8000/workspace/:workspaceid/posts : Get all posts of a workspace
+
+	GET https://thought-museum.herokuapp.com/workspace/3/posts-with-comments : Get all posts with comments of a workspace
+
+	POST: http://localhost:8000/workspace : create new workspace
+	{
+		"title": "workspace1",
+		"description": "some description",
+		"teacherId": 1,
+		"studentId": 2
+	}
+
+	PUT: http://localhost:8000/workspace/:workspaceid : update workspace by id
+	{
+		"title": "workspace1",
+		"description": "some description",
+	}
+
+	DELETE http://localhost:8000/workspace/:workspaceid : delete workspace by id
+	
+===============================================================================
+Posts: 
+	GET http://localhost:8000/posts/ : Get all posts for logged in user
+
+	POST http://localhost:8000/posts/ : create a new post
+	{
+		"title": "workspace1",
+		"content": "some description",
+		"workspaceId": 1
+	}
+
+	PUT http://localhost:8000/posts/:postid : update post by id
+	{
+		"title": "workspace1",
+		"content": "some description"
+	}
+
+	DELETE http://localhost:8000/posts/:postid : delete post by id
+
+	GET http://localhost:8000/posts/:postid/comments : Get all comments for given postid
+===============================================================================
+Comments:
+	GET http://localhost:8000/comments/ : Get all comments for logged in user
+
+	POST http://localhost:8000/comments/ : create a new comment
+	{
+		"content": "some comment",
+		"postId": 1
+	}
+
+	PUT http://localhost:8000/comments/:commentid : update comment by id
+	{
+		"content": "some updated comment"
+	}
+
+	DELETE http://localhost:8000/comments/:commentid : delete comment by id
