@@ -9,8 +9,8 @@ const Comment = db.define('Comment', {
     },
 });
 
-Comment.belongsTo(Post, { as: 'post' })
 Comment.belongsTo(User, { as: 'user' })
+Comment.belongsTo(Post, { as: 'post' })
 
 Comment.sync().then(() => {
     console.log('Comment Table in sync now');

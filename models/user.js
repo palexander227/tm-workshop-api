@@ -18,6 +18,9 @@ const User = db.define('User', {
     role: {
         type: Sequelize.STRING
     },
+    status: {
+        type: Sequelize.BOOLEAN
+    },
 });
 
 User.sync().then(() => {

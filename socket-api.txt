@@ -1,0 +1,44 @@
+Subscribers
+    Join
+        socket.on('join', (chatroomId) => {
+            socket.join(chatroomId);
+        });
+
+    ******************************************************
+
+    Leave
+        socket.on('leave', (chatroomId) => {
+            socket.leave(chatroomId);
+        });
+
+    ******************************************************
+
+    newMessage
+        socket.on('newMessage', (newMessage) => {
+            socket.broadcast.to(newMessage.chatroomId).emit('addMessage', newMessage);
+        });
+
+    ******************************************************
+    setSocketId
+        socket.on('setSocketId', async (data) => {
+            const userId = data.userId;
+            const user = await User.findByPk(userId);
+            user.status = 'online';
+            user.socketId = socket.id;
+            await user.save();
+            socket.broadcast.emit('userOnline', user)
+        });
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Emitter
+
+    userOnline
+      socket.broadcast.emit('userOnline', user)
+
+    ******************************************************
+
+    userOffline
+      socket.broadcast.emit('userOffline', user)
+
+    ******************************************************
