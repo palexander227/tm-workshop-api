@@ -67,8 +67,8 @@ router.post('/:chatroomId/messages', (req, res, next) => {
                         }, async (err, uploadedImg) => {
                             if (err) return res.status(400).send({ err });
                             console.log('uploadedImg', uploadedImg);
-                            // https://pikky.s3.amazonaws.com/profile/45bc7f72-8986-4cdc-8ec1-edd7b04d06f6.png
-                            const mediaPath = `https://pikky.s3.amazonaws.com/${uploadedImg[0].fd}`;
+                            // https://thoughtmuseum-image-hosting.s3.us-east-2.amazonaws.com/45bc7f72-8986-4cdc-8ec1-edd7b04d06f6.png
+                            const mediaPath = `https://thoughtmuseum-image-hosting.s3.us-east-2.amazonaws.com/${uploadedImg[0].fd}`;
                             createdMessage.senderId = foundUser.id;
                             createdMessage.mediaUrl = mediaPath;
                             if (!req.body.chatroomId) {
