@@ -2,6 +2,8 @@ const router = require('express').Router();
 const Chatroom = require('../models/chatroom');
 const Message = require('../models/message');
 const User = require('../models/user');
+const { Op } = require("sequelize");
+
 
 // GET request to get all chatrooms
 router.get('/', async (req, res, next) => {
@@ -29,10 +31,11 @@ router.get('/', async (req, res, next) => {
 router.get('/:chatroomId/messages', (req, res, next) => {
     Message.findAll({
         where: {
-            chatroomId: req.params.chatroomId,
+            chatId: req.params.chatroomId,
         },
         include: [
-            { model: User, attributes: ['username'] },
+            { model: User, attributes: ['username', 'status', 'id'], as: 'sender' },
+            { model: User, attributes: ['username', 'status', 'id'], as: 'reciever' },
         ],
         order: [
             ['createdAt', 'ASC'],
@@ -45,17 +48,20 @@ router.get('/:chatroomId/messages', (req, res, next) => {
 });
 
 // POST request to add a message
-router.post('/:chatroomId/messages', (req, res, next) => {
-
-    const files = req._fileparser.upstreams.length
-        ? req.file("media")
-        : undefined;
+router.post('/messages', (req, res, next) => {
+    // console.log(req._fileparser);
+    let files = undefined;
+    if (req._fileparser) {
+        files = req._fileparser.upstreams.length
+            ? req.file("media")
+            : undefined;
+    }
 
 
     User.findByPk(req.user.id)
         .then(async (foundUser) => {
             console.log(req.body);
-            return Message.create(req.body)
+            Message.create(req.body)
                 .then(async (createdMessage) => {
                     if (files) {
                         files.upload({
@@ -72,35 +78,59 @@ router.post('/:chatroomId/messages', (req, res, next) => {
                             createdMessage.senderId = foundUser.id;
                             createdMessage.mediaUrl = mediaPath;
                             if (!req.body.chatroomId) {
+                                const isTeacher = req.user.role === 'teacher';
+                                const chatrooms = await Chatroom.findOne({
+                                    where: {
+                                        [Op.and]: [
+                                            { teacherId: isTeacher ? req.user.id : req.body.recieverId },
+                                            { studentId: isTeacher ? req.body.recieverId : req.user.id }
+                                        ]
+                                    }
+                                });
+                                console.log('chatrooms', chatrooms);
+                                if (chatrooms) {
+                                    createdMessage.chatId = chatrooms.id;
+                                } else {
+                                    const chat = await Chatroom.create({
+                                        teacherId: req.user.role === 'teacher' ? req.user.id : req.body.recieverId,
+                                        studentId: req.user.role === 'student' ? req.user.id : req.body.recieverId
+                                    });
+                                    createdMessage.chatId = chat.id;
+                                }
+                            }
+                            createdMessage.save();
+                            return res.status(200).send({ message: 'message sent', data: createdMessage })
+                        });
+                    } else {
+                        createdMessage.senderId = foundUser.id;
+                        if (!req.body.chatroomId) {
+                            const isTeacher = req.user.role === 'teacher';
+                            const chatrooms = await Chatroom.findOne({
+                                where: {
+                                    [Op.and]: [
+                                        { teacherId: isTeacher ? req.user.id : req.body.recieverId },
+                                        { studentId: isTeacher ? req.body.recieverId : req.user.id }
+                                    ]
+                                }
+                            });
+                            console.log('chatrooms', chatrooms);
+                            if (chatrooms) {
+                                createdMessage.chatId = chatrooms.id;
+                                createdMessage.mediaUrl = '';
+                            } else {
                                 const chat = await Chatroom.create({
                                     teacherId: req.user.role === 'teacher' ? req.user.id : req.body.recieverId,
                                     studentId: req.user.role === 'student' ? req.user.id : req.body.recieverId
                                 });
                                 createdMessage.chatId = chat.id;
-                                // createdMessage.mediaUrl = mediaPath;
                             }
-                            createdMessage.save();
-                            const createdMessageInJSON = createdMessage.toJSON();
-                            return createdMessageInJSON;
-                        });
-                    } else {
-                        createdMessage.senderId = foundUser.id;
-                        if (!req.body.chatroomId) {
-                            const chat = await Chatroom.create({
-                                teacherId: req.user.role === 'teacher' ? req.user.id : req.body.recieverId,
-                                studentId: req.user.role === 'student' ? req.user.id : req.body.recieverId
-                            });
-                            createdMessage.chatId = chat.id;
-                            createdMessage.mediaUrl = mediaPath;
                         }
                         createdMessage.save();
-                        const createdMessageInJSON = createdMessage.toJSON();
-                        return createdMessageInJSON;
+                        // const createdMessageInJSON = createdMessage.toJSON();
+                        // return createdMessageInJSON;
+                        return res.status(200).send({ message: 'message sent', data: createdMessage })
                     }
                 });
-        })
-        .then((completeMessage) => {
-            res.send(completeMessage);
         })
         .catch(next);
 });
