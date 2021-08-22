@@ -10,8 +10,8 @@ const socketEvents = (io) => {
   io.on('connection', (socket) => {
     console.log(`A user has connected! SocketId: ${socket.id}`);
 
-    socket.on('join', (chatroomId) => {
-      socket.join(chatroomId);
+    socket.on('join', (userId) => {
+      socket.join(userId);
     });
 
     socket.on('setSocketId', async (data) => {
@@ -23,8 +23,8 @@ const socketEvents = (io) => {
       socket.broadcast.emit('userOnline', user)
     });
 
-    socket.on('leave', (chatroomId) => {
-      socket.leave(chatroomId);
+    socket.on('leave', (userId) => {
+      socket.leave(userId);
     });
 
     socket.on('disconnect', async () => {
@@ -37,7 +37,7 @@ const socketEvents = (io) => {
     });
 
     socket.on('newMessage', (newMessage) => {
-      socket.broadcast.to(newMessage.chatroomId).emit('addMessage', newMessage);
+      socket.broadcast.to(newMessage.recieverId).emit('addMessage', newMessage);
     });
   });
 };

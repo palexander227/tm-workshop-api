@@ -28,23 +28,34 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET request to get all messages of a chatroom
-router.get('/:chatroomId/messages', (req, res, next) => {
-    Message.findAll({
+router.get('/messages', async (req, res, next) => {
+    const isTeacher = req.user.role === 'teacher';
+    const chatrooms = await Chatroom.findOne({
         where: {
-            chatId: req.params.chatroomId,
-        },
-        include: [
-            { model: User, attributes: ['username', 'status', 'id'], as: 'sender' },
-            { model: User, attributes: ['username', 'status', 'id'], as: 'reciever' },
-        ],
-        order: [
-            ['createdAt', 'ASC'],
-        ],
-    })
-        .then((foundMessages) => {
-            res.send(foundMessages);
-        })
-        .catch(next);
+            [Op.and]: [
+                { teacherId: isTeacher ? req.user.id : req.query.receiverId },
+                { studentId: isTeacher ? req.query.receiverId : req.user.id }
+            ]
+        }
+    });
+    if (chatrooms) {
+        Message.findAll({
+            where: {
+                chatId: chatrooms.id,
+            },
+            include: [
+                { model: User, attributes: ['username', 'status', 'id'], as: 'sender' },
+                { model: User, attributes: ['username', 'status', 'id'], as: 'reciever' },
+            ],
+            order: [
+                ['createdAt', 'ASC'],
+            ],
+        }).then((foundMessages) => {
+            return res.status(200).send({foundMessages});
+        }).catch(next);
+    } else {
+        return res.status(200).send({foundMessages: []});
+    }
 });
 
 // POST request to add a message

@@ -27,7 +27,12 @@ function main() {
     const server = http.createServer(app)
     server.listen(PORT, onServerStart);
     const socketio = require('socket.io');
-    const io = socketio(server);
+    const io = socketio(server, {
+        cors: {
+            origin: "*",
+            methods: ["GET", "POST"]
+        }
+    });
     const socketEvents = require('./sockets');
     socketEvents(io);
 
