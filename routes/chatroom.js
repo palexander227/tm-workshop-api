@@ -32,9 +32,13 @@ router.get('/messages', async (req, res, next) => {
     const isTeacher = req.user.role === 'teacher';
     const chatrooms = await Chatroom.findOne({
         where: {
+            // [Op.and]: [
+            //     { teacherId: isTeacher ? req.user.id : req.query.receiverId },
+            //     { studentId: isTeacher ? req.query.receiverId : req.user.id }
+            // ]
             [Op.and]: [
-                { teacherId: isTeacher ? req.user.id : req.query.receiverId },
-                { studentId: isTeacher ? req.query.receiverId : req.user.id }
+                { teacherId: { [Op.or]: [req.query.receiverId, req.user.id] } },
+                { studentId: { [Op.or]: [req.query.receiverId, req.user.id] } }
             ]
         }
     });
@@ -51,10 +55,10 @@ router.get('/messages', async (req, res, next) => {
                 ['createdAt', 'ASC'],
             ],
         }).then((foundMessages) => {
-            return res.status(200).send({foundMessages});
+            return res.status(200).send({ foundMessages });
         }).catch(next);
     } else {
-        return res.status(200).send({foundMessages: []});
+        return res.status(200).send({ foundMessages: [] });
     }
 });
 
@@ -93,8 +97,8 @@ router.post('/messages', (req, res, next) => {
                                 const chatrooms = await Chatroom.findOne({
                                     where: {
                                         [Op.and]: [
-                                            { teacherId: isTeacher ? req.user.id : req.body.recieverId },
-                                            { studentId: isTeacher ? req.body.recieverId : req.user.id }
+                                            { teacherId: { [Op.or]: [req.body.recieverId, req.user.id] } },
+                                            { studentId: { [Op.or]: [req.body.recieverId, req.user.id] } }
                                         ]
                                     }
                                 });
@@ -103,8 +107,8 @@ router.post('/messages', (req, res, next) => {
                                     createdMessage.chatId = chatrooms.id;
                                 } else {
                                     const chat = await Chatroom.create({
-                                        teacherId: req.user.role === 'teacher' ? req.user.id : req.body.recieverId,
-                                        studentId: req.user.role === 'student' ? req.user.id : req.body.recieverId
+                                        teacherId: req.user.id,
+                                        studentId: req.body.recieverId
                                     });
                                     createdMessage.chatId = chat.id;
                                 }
@@ -119,8 +123,8 @@ router.post('/messages', (req, res, next) => {
                             const chatrooms = await Chatroom.findOne({
                                 where: {
                                     [Op.and]: [
-                                        { teacherId: isTeacher ? req.user.id : req.body.recieverId },
-                                        { studentId: isTeacher ? req.body.recieverId : req.user.id }
+                                        { teacherId: { [Op.or]: [req.body.recieverId, req.user.id] } },
+                                        { studentId: { [Op.or]: [req.body.recieverId, req.user.id] } }
                                     ]
                                 }
                             });
@@ -130,8 +134,8 @@ router.post('/messages', (req, res, next) => {
                                 createdMessage.mediaUrl = '';
                             } else {
                                 const chat = await Chatroom.create({
-                                    teacherId: req.user.role === 'teacher' ? req.user.id : req.body.recieverId,
-                                    studentId: req.user.role === 'student' ? req.user.id : req.body.recieverId
+                                    teacherId: req.user.id,
+                                    studentId: req.body.recieverId
                                 });
                                 createdMessage.chatId = chat.id;
                             }
@@ -141,9 +145,13 @@ router.post('/messages', (req, res, next) => {
                         // return createdMessageInJSON;
                         return res.status(200).send({ message: 'message sent', data: createdMessage })
                     }
+                }).catch(e => {
+                    console.log('message', e);
                 });
         })
-        .catch(next);
+        .catch(err => {
+            console.log(err);
+        });
 });
 
 module.exports = router;
