@@ -21,6 +21,9 @@ const User = db.define('User', {
     status: {
         type: Sequelize.BOOLEAN
     },
+    socketId: {
+        type: Sequelize.STRING
+    }
 });
 
 User.sync().then(() => {
