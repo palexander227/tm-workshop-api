@@ -6,10 +6,6 @@ const User = require('./user');
 const Message = db.define('Message', {
     message: {
         type: Sequelize.STRING,
-        allowNull: false,
-        validate: {
-            notEmpty: true,
-        },
     },
     isMedia: {
         type: Sequelize.BOOLEAN
