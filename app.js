@@ -1,6 +1,7 @@
 const express = require('express')
 const passport = require('passport')
 const http = require('http')
+const cors = require('cors')
 
 
 require('dotenv').config();
@@ -24,6 +25,7 @@ function main() {
     app.use(require('cors')())
     app.use(express.json())
     app.use(require('skipper')());
+    app.use(cors())
     const server = http.createServer(app)
     server.listen(PORT, onServerStart);
     const socketio = require('socket.io');
