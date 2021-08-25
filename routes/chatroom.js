@@ -84,6 +84,7 @@ router.post('/messages', (req, res, next) => {
                             key: process.env.BUCKET_KEY,
                             secret: process.env.BUCKET_SECRET,
                             bucket: process.env.BUCKET_NAME,
+                            maxBytes: 10000000, 
                             dirname: '',
                         }, async (err, uploadedImg) => {
                             if (err) return res.status(400).send({ err });
